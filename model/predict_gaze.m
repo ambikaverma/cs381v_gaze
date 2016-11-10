@@ -1,15 +1,15 @@
 function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
     % Written by Adria Recasens (recasens@mit.edu)
-    
-    addpath(genpath('/data/vision/torralba/datasetbias/caffe-cudnn3/matlab/'));
-    
+
+    % addpath(genpath('/data/vision/torralba/datasetbias/caffe-cudnn3/matlab/'));
+
     definition_file = ['deploy_demo.prototxt'];
     binary_file = ['binary_w.caffemodel'];
 
     s = RandStream('mt19937ar','Seed',sum(10000*clock));
     RandStream.setGlobalStream(s);
-    
-   filelist = cell(1,3);   
+
+   filelist = cell(1,3);
    filelist(:,1) = {img};
 
    alpha = 0.3;
@@ -22,7 +22,7 @@ function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
    if(mod(w_y,2)==0)
         w_y = w_y +1;
    end
-   
+
    im_face = ones(w_y,w_x,3,'uint8');
    im_face(:,:,1) = 123*ones(w_y,w_x,'uint8');
    im_face(:,:,2) = 117*ones(w_y,w_x,'uint8');
@@ -55,7 +55,6 @@ function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
          delta_t_y = w_y-(top_y-size(img,1));
          top_y = size(img,1);
     end
-    
     im_face(delta_b_y:delta_t_y,delta_b_x:delta_t_x,:) = img(bottom_y:top_y,bottom_x:top_x,:);
     filelist(:,2) = {im_face};
 
@@ -67,12 +66,11 @@ function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
     f(1,1,:) = z(:);
     filelist(:,3) = {f};
 
-    use_gpu = 0;
+    use_gpu = 1;
     device_id = 2;
 
     transform_data =[1 1 0];
 
-    
     if(~exist('net','var'))
         if use_gpu
          caffe.set_mode_gpu();
@@ -96,7 +94,7 @@ function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
         b = cell(1, 1);
         img_size = [input_dim(3) input_dim(4) input_dim(2)];
         image_mean = image_mean_cell{j};
-             
+
         if(transform_data(j))
                 tmp = load(image_mean);
                 image_mean = tmp.image_mean;
@@ -123,10 +121,10 @@ function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
         else
                 b{1} = filelist_i;
         end
-         b = cat(4, b{:}); 
-        ims{j} = b;   
+         b = cat(4, b{:});
+        ims{j} = b; 
     end
-    
+
     f_val = net.forward(ims);
 
     fc_0_0 = f_val{1}';
@@ -142,7 +140,7 @@ function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
       f_m1_0 = reshape(fc_m1_0(1,:),[5 5]); f_m1_0 = exp(alpha*f_m1_0)/sum(exp(alpha*f_m1_0(:)));
       f_0_m1 =reshape(fc_0_m1(1,:),[5 5]);  f_0_m1 = exp(alpha*f_0_m1)/sum(exp(alpha*f_0_m1(:)));
       f_0_1 = reshape(fc_0_1(1,:),[5 5]); f_0_1 = exp(alpha*f_0_1)/sum(exp(alpha*f_0_1(:)));
-      
+
       f_cell = {f_0_0,f_1_0,f_m1_0,f_0_m1,f_0_1};
       v_x = [0 1 -1 0 0];
       v_y = [0 0 0 -1 1];
@@ -173,7 +171,7 @@ function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
             end
         end
       end
-      
+
       hm_base = hm./count_hm;
       hm_results = imresize(hm_base', [size(img,1) size(img,2)],'bicubic');
       [maxval,idx]=max(hm_results(:));
@@ -182,8 +180,3 @@ function [x_predict,y_predict,hm_results,net] = predict_gaze(img,e,net)
       x_predict = col/size(hm_results,2);
 
 end
-
-
-
-
-
