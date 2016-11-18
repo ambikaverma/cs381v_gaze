@@ -57,6 +57,4 @@ function gazes = mrf(im, faces, orientations, num_cells, n, ...
         text(look_x, look_y, sprintf('%.2f', unary_potentials(i, 1)), ...
              'Unit', 'Data', 'Color', 'r');
     end
-    orientations
-    keyboard;
 end

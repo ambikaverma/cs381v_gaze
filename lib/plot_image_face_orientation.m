@@ -10,7 +10,7 @@ function plot_image_face_orientation(im, faces, orientations)
 
     % Make the norms a bit better to see.
     for i = 1:size(orientations, 1)
-        orientations(i) = orientations(i) * 25;
+        orientations(i, :) = orientations(i, :) * 25;
     end
 
     % Transform normalized coordinates back.
