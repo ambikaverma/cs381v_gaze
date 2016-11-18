@@ -18,6 +18,6 @@ function [faces, orientations] = get_face_orientation(eyes, gazes)
     % Orientations are unit vectors.
     orientations = SIGMA * randn(n, 2) + orientations;
     for i = 1:n
-        orientations(i) = orientations(i) / norm(orientations(i));
+        orientations(i, :) = orientations(i, :) / norm(orientations(i, :));
     end
 end

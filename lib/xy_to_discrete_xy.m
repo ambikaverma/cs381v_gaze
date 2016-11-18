@@ -21,10 +21,11 @@
 % height - (int) height of the image.
 % num_cells - (int) amount the image was discretized into.
 
-function class = xy_to_class(position, width, height, num_cells)
-    % Discretized grid positions.
-    [x, y] = xy_to_discrete_xy(position, width, height, num_cells);
+function [x, y] = xy_to_discrete_xy(position, width, height, num_cells)
+    cell_width = ceil(width / num_cells);
+    cell_height = ceil(height / num_cells);
 
-    % 1 indexed.
-    class = 1 + y * num_cells + x;
+    % Discretized grid positions.
+    x = floor(position(1) / cell_width);
+    y = floor(position(2) / cell_height);
 end

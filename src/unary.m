@@ -12,8 +12,9 @@
 function potential = unary(look, face, orientation, faces, ...
                            sigma, c_2, c_3)
     % Gaussian distribution over all cells.
+    look_dir = (look - face) / norm(look - face);
     phi_1 = 1 / (sigma * sqrt(2 * pi)) * ...
-            exp(-(norm(orientation - (look - face))) / (2 * sigma ^ 2));
+            exp(-(norm(orientation - look_dir)) / (2 * sigma ^ 2));
 
     % Threshold to avoid a face from looking at itself.
     phi_2 = 1 / (1 + exp(-(c_2 * norm(look - face))));

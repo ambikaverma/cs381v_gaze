@@ -1,6 +1,3 @@
-% Utility functions.
-addpath('/Users/bradyzhou/code/cs381v_final/lib');
-
 % This function returns true if the gaze is at another face.
 %
 % Args:
@@ -8,5 +5,14 @@ addpath('/Users/bradyzhou/code/cs381v_final/lib');
 % faces - (nx2) discretized positions of other faces.
 
 function is_looking_at_face = looking_at_face(look, faces)
-    is_looking_at_face = ismember(look, faces, 'rows');
+    % Number of cells away.
+    THRESHOLD = 1;
+
+    % Iterate through faces and check distance.
+    is_looking_at_face = false;
+    for i = 1:size(faces, 1)
+        if norm(look - faces(i)) <= THRESHOLD
+            is_looking_at_face = true;
+        end
+    end
 end

@@ -1,12 +1,17 @@
 % Utility functions.
 addpath('/Users/bradyzhou/code/cs381v_final/lib');
-addpath('/Users/bradyzhou/code/cs381v_final/src');
 
 % Path to gazefollow dataset.
 IMAGE_PATH = '/Users/bradyzhou/code/cs381v_final/data/gazefollow/'
 
 % Path to mat file with multiple gaze data.
 GAZE_MAT = '/Users/bradyzhou/code/cs381v_final/data/multiple_gaze_data.mat'
+
+% Model parameters, see mrf.m for details.
+SIGMA = 0.5;
+C_2 = 1;
+C_3 = 2;
+C_B = 0.5;
 
 % Initialize info.
 data = load(GAZE_MAT);
@@ -33,6 +38,9 @@ for i = 1:num_gaze_data
     hold on;
     plot_image_eye_gaze(im, eyes, gazes);
     plot_image_face_orientation(im, faces, orientations);
+
+    % Calculate maximum joint probability.
+    mrf(im, faces, orientations, 5, num_subjects, SIGMA, C_2, C_3, C_B);
     hold off;
     pause;
 end
