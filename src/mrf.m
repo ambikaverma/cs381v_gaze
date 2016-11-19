@@ -16,6 +16,7 @@
 % im - (image) the image to predict on.
 % faces - (nx2) positions of all faces in the image.
 % orientations - (nx2) unit vectors of all orientations.
+% predictions - (nx2) initial seeds for alpha expansion.
 % num_cells - (int) number of cells to discretize the image into.
 % n - (int) number of faces in the image.
 % sigma - (float) model parameter, variance of gaze distribution.
@@ -23,8 +24,12 @@
 % c_3 - (float) model parameter, bias to push look at other faces.
 % c_b - (float) model parameter, bias to push look at similar places.
 
-function gazes = mrf(im, faces, orientations, num_cells, n, ...
+function gazes = mrf(im, faces, orientations, predictions, ...
+                     num_cells, n, ...
                      sigma, c_2, c_3, c_b)
+    % For GCMex alpha expansion solver.
+    addpath('/Users/bradyzhou/code/cs381v_final/third_party/GCMex');
+
     % Setup.
     [h, w, ~] = size(im);
     c = num_cells^2;
@@ -34,10 +39,21 @@ function gazes = mrf(im, faces, orientations, num_cells, n, ...
     unnormalized_faces(:, 1) = w * faces(:, 1);
     unnormalized_faces(:, 2) = h * faces(:, 2);
 
+    % Project gaze predictions back into image space.
+    unnormalized_predictions = zeros(n, 2);
+    unnormalized_predictions(:, 1) = w * predictions(:, 1);
+    unnormalized_predictions(:, 2) = h * predictions(:, 2);
+
     % Initialize energy functions.
     classes = zeros(1, n);
-    unary_potentials = zeros(c, n);
-    pairwise_potentials = zeros(c, c);
+    unary_pot = zeros(c, n);
+    pairwise_pot = sparse(c, c);
+    labelcost = zeros(c, c);
+
+    % Populate initial guesses (use CNN's predictions).
+    for i = 1:n
+        classes(i) = xy_to_class(unnormalized_predictions(i, :), w, h, num_cells);
+    end
 
     % Populate unary potentials.
     for i = 1:c
@@ -46,15 +62,55 @@ function gazes = mrf(im, faces, orientations, num_cells, n, ...
 
         % The unary potential column denotes the person number.
         for j = 1:n
-            unary_potentials(i, j) = unary([look_x, look_y], ...
-                                           unnormalized_faces(j, :), ...
-                                           orientations(j, :), ...
-                                           unnormalized_faces, ...
-                                           sigma, c_2, c_3);
+            unary_pot(i, j) = unary([look_x, look_y], ...
+                                    unnormalized_faces(j, :), ...
+                                    orientations(j, :), ...
+                                    unnormalized_faces, ...
+                                    sigma, c_2, c_3);
         end
 
         % Debug.
-        text(look_x, look_y, sprintf('%.2f', unary_potentials(i, 1)), ...
+        text(look_x, look_y, sprintf('%.2f', unary_pot(i, 1)), ...
              'Unit', 'Data', 'Color', 'r');
     end
+
+    % Populate pairwise label costs.
+    for i = 1:n
+        for j = 1:n
+            if i == j
+                pairwise(i, j) = c_b;
+            else
+                pairwise(i, j) = 1;
+            end
+        end
+    end
+
+    % Relative coordinates for neighbors.
+    adj = [-1,  0;
+            1,  0;
+            0  -1;
+            0,  1];
+
+    % Add graph structure for all cells.
+    for u_x = 1:num_cells
+        for u_y = 1:num_cells
+            u = xy_discrete_to_class(u_x - 1, u_y - 1, num_cells);
+
+            for i = 1:size(adj, 1)
+                v_x = u_x + adj(i, 1);
+                v_y = u_y + adj(i, 2);
+
+                if v_x >= 1 && v_x <= num_cells && ...
+                    v_y >= 1 && v_y <= num_cells
+                    v = xy_discrete_to_class(v_x - 1, v_y - 1, num_cells);
+                    labelcost(u, v) = 1;
+                end
+            end
+        end
+    end
+
+    [labels, energy, energyafter] = GCMex(classes, single(unary_pot), ...
+                                          pairwise_pot, single(labelcost), 0);
+
+    keyboard;
 end

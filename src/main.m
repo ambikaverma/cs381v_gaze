@@ -15,7 +15,7 @@ C_B = 0.5;
 
 % Initialize info.
 data = load(GAZE_MAT);
-multiple_gaze_data = data.multiple_gaze_info;
+multiple_gaze_data = data.gaze_info_array;
 num_gaze_data = size(multiple_gaze_data, 1);
 
 for i = 1:num_gaze_data
@@ -23,6 +23,7 @@ for i = 1:num_gaze_data
     gaze_data = multiple_gaze_data(i);
     image_path = strcat(IMAGE_PATH, gaze_data.path);
     eyes = gaze_data.eyes;
+    predictions = gaze_data.predictions;
     gazes = gaze_data.gazes;
 
     % Extra information.
@@ -36,11 +37,13 @@ for i = 1:num_gaze_data
     clf;
     image(im);
     hold on;
-    plot_image_eye_gaze(im, eyes, gazes);
+    plot_image_eye_gaze(im, eyes, gazes, 'r');
+    plot_image_eye_gaze(im, eyes, predictions, 'c');
     plot_image_face_orientation(im, faces, orientations);
 
     % Calculate maximum joint probability.
-    mrf(im, faces, orientations, 5, num_subjects, SIGMA, C_2, C_3, C_B);
+    mrf(im, faces, orientations, predictions, 5, num_subjects, ...
+        SIGMA, C_2, C_3, C_B);
     hold off;
     pause;
 end
