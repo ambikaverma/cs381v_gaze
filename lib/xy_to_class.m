@@ -26,5 +26,5 @@ function class = xy_to_class(position, width, height, num_cells)
     [x, y] = xy_to_discrete_xy(position, width, height, num_cells);
 
     % 1 indexed.
-    class = 1 + y * num_cells + x;
+    class = xy_discrete_to_class(x, y, num_cells);
 end

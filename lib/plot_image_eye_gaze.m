@@ -4,8 +4,9 @@
 % im - (mxn) image to plot
 % eyes - (nx2) x,y pairs of eyes
 % gazes - (nx2) x,y pairs of gazes
+% color - (str) color of dot and line.
 
-function plot_image_eye_gaze(im, eyes, gazes)
+function plot_image_eye_gaze(im, eyes, gazes, color)
     [height, width, ~] = size(im);
 
     % Transform normalized coordinates back.
@@ -17,8 +18,8 @@ function plot_image_eye_gaze(im, eyes, gazes)
     real_gaze_vector_y = height * (gazes(:, 2) - eyes(:, 2));
 
     % Plot the stuff.
-    plot(real_eyes_x, real_eyes_y, 'r.', 'MarkerSize', 20);
+    plot(real_eyes_x, real_eyes_y, strcat(color, '.'), 'MarkerSize', 20);
     quiver(real_eyes_x, real_eyes_y, ...
            real_gaze_vector_x, real_gaze_vector_y, 0, ...
-           'LineWidth', 2, 'Color', 'r');
+           'LineWidth', 2, 'Color', color);
 end
