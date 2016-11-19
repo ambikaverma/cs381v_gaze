@@ -1,3 +1,10 @@
+% Finds all the duplicates of a given list.
+%
+% Args:
+%   list - (nx1) to find duplicates in.
+% Returns:
+%   duplicates (mx1) unique values of the list.
+
 function duplicates = get_duplicates(list)
     [D, ~, X] = unique(list);
     Y = hist(X, unique(X));

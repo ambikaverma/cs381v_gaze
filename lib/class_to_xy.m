@@ -16,10 +16,12 @@
 %  Y
 %
 % Args:
-% class - (int) class label to decode..
-% width - (int) width of the image.
-% height - (int) height of the image.
-% num_cells - (int) amount the image was discretized into.
+%   class - (int) class label to decode..
+%   width - (int) width of the image.
+%   height - (int) height of the image.
+%   num_cells - (int) amount the image was discretized into.
+% Returns:
+%   [x_coord, y_coord] (1x2) image coordinates.
 
 function [x_coord, y_coord] = class_to_xy(class, width, height, num_cells)
     x = mod(class - 1, num_cells);

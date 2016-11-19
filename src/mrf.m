@@ -13,16 +13,18 @@
 % p, the normalize potential, pot / sum(pot).
 %
 % Args:
-% im - (image) the image to predict on.
-% faces - (nx2) positions of all faces in the image.
-% orientations - (nx2) unit vectors of all orientations.
-% predictions - (nx2) initial seeds for alpha expansion.
-% num_cells - (int) number of cells to discretize the image into.
-% n - (int) number of faces in the image.
-% sigma - (float) model parameter, variance of gaze distribution.
-% c_2 - (float) model parameter, bias to push the gaze away its own face.
-% c_3 - (float) model parameter, bias to push look at other faces.
-% c_b - (float) model parameter, bias to push look at similar places.
+%   im - (image) the image to predict on.
+%   faces - (nx2) positions of all faces in the image.
+%   orientations - (nx2) unit vectors of all orientations.
+%   predictions - (nx2) initial seeds for alpha expansion.
+%   num_cells - (int) number of cells to discretize the image into.
+%   n - (int) number of faces in the image.
+%   sigma - (float) model parameter, variance of gaze distribution.
+%   c_2 - (float) model parameter, bias to push the gaze away its own face.
+%   c_3 - (float) model parameter, bias to push look at other faces.
+%   c_b - (float) model parameter, bias to push look at similar places.
+% Returns:
+%   gazes (nx2) refined gaze predictions in normalized coordinates [0, 1].
 
 function gazes = mrf(im, faces, orientations, predictions, ...
                      num_cells, n, ...
@@ -100,6 +102,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
                 v_x = u_x + adj(i, 1);
                 v_y = u_y + adj(i, 2);
 
+                % Connected to cardinal direction neighbors.
                 if v_x >= 1 && v_x <= num_cells && ...
                     v_y >= 1 && v_y <= num_cells
                     v = xy_discrete_to_class(v_x - 1, v_y - 1, num_cells);

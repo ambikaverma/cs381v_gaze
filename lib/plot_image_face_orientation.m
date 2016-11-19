@@ -1,9 +1,11 @@
 % Helper method to plot.
 %
 % Args:
-% im - (mxn) image to plot
-% faces - (nx2) x,y pairs of eyes
-% orientations - (nx2) x,y pairs of gazes
+%   im - (mxn) image to plot
+%   faces - (nx2) x,y pairs of eyes
+%   orientations - (nx2) x,y pairs of gazes
+% Returns:
+%   void
 
 function plot_image_face_orientation(im, faces, orientations)
     [height, width, ~] = size(im);

@@ -2,8 +2,10 @@
 % Used to fake face and orientation in the lack of a decent head detector.
 %
 % Args:
-% eyes - (nx2) x,y pairs of eyes
-% gazes - (nx2) x,y pairs of gazes
+%   eyes - (nx2) x,y pairs of eyes
+%   gazes - (nx2) x,y pairs of gazes
+% Returns:
+%   [faces, orientations] (nx2, nx2) perturbed locations.
 
 function [faces, orientations] = get_face_orientation(eyes, gazes)
     SIGMA_FACE = 0.01;

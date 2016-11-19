@@ -16,10 +16,12 @@
 %  Y
 %
 % Args:
-% position - (1x2) xy position to decode.
-% width - (int) width of the image.
-% height - (int) height of the image.
-% num_cells - (int) amount the image was discretized into.
+%   position - (1x2) xy position to decode.
+%   width - (int) width of the image.
+%   height - (int) height of the image.
+%   num_cells - (int) amount the image was discretized into.
+% Returns:
+%   [x, y] (1x2) int of cell position.
 
 function [x, y] = xy_to_discrete_xy(position, width, height, num_cells)
     cell_width = ceil(width / num_cells);

@@ -1,10 +1,12 @@
 % Helper method to plot.
 %
 % Args:
-% im - (mxn) image to plot
-% eyes - (nx2) x,y pairs of eyes
-% gazes - (nx2) x,y pairs of gazes
-% color - (str) color of dot and line.
+%   im - (mxn) image to plot
+%   eyes - (nx2) x,y pairs of eyes
+%   gazes - (nx2) x,y pairs of gazes
+%   color - (str) color of dot and line.
+% Returns:
+%   void
 
 function plot_image_eye_gaze(im, eyes, gazes, color)
     [height, width, ~] = size(im);

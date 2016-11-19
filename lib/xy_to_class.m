@@ -16,10 +16,12 @@
 %  Y
 %
 % Args:
-% position - (1x2) xy position to decode.
-% width - (int) width of the image.
-% height - (int) height of the image.
-% num_cells - (int) amount the image was discretized into.
+%   position - (1x2) xy position to decode.
+%   width - (int) width of the image.
+%   height - (int) height of the image.
+%   num_cells - (int) amount the image was discretized into.
+% Returns:
+%   class (int) the class label.
 
 function class = xy_to_class(position, width, height, num_cells)
     % Discretized grid positions.
