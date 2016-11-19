@@ -42,8 +42,9 @@ for i = 1:num_gaze_data
     plot_image_face_orientation(im, faces, orientations);
 
     % Calculate maximum joint probability.
-    mrf(im, faces, orientations, predictions, 5, num_subjects, ...
-        SIGMA, C_2, C_3, C_B);
+    mrf_predictions = mrf(im, faces, orientations, predictions, 5, num_subjects, ...
+                          SIGMA, C_2, C_3, C_B);
+    plot_image_eye_gaze(im, eyes, mrf_predictions, 'g');
     hold off;
     pause;
 end

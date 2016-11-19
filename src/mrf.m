@@ -47,7 +47,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     % Initialize energy functions.
     classes = zeros(1, n);
     unary_pot = zeros(c, n);
-    pairwise_pot = sparse(c, c);
+    pairwise_pot = sparse(n, n);
     labelcost = zeros(c, c);
 
     % Populate initial guesses (use CNN's predictions).
@@ -62,7 +62,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
 
         % The unary potential column denotes the person number.
         for j = 1:n
-            unary_pot(i, j) = unary([look_x, look_y], ...
+            unary_pot(i, j) = 1 / unary([look_x, look_y], ...
                                     unnormalized_faces(j, :), ...
                                     orientations(j, :), ...
                                     unnormalized_faces, ...
@@ -78,9 +78,9 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     for i = 1:n
         for j = 1:n
             if i == j
-                pairwise(i, j) = c_b;
+                pairwise_pot(i, j) = 1 / c_b;
             else
-                pairwise(i, j) = 1;
+                pairwise_pot(i, j) = 1;
             end
         end
     end
@@ -109,8 +109,17 @@ function gazes = mrf(im, faces, orientations, predictions, ...
         end
     end
 
+    % Solve for minimizing energy.
     [labels, energy, energyafter] = GCMex(classes, single(unary_pot), ...
                                           pairwise_pot, single(labelcost), 0);
+    fprintf('Energy solved. Before: %.3f, After: %.3f\n', energy, energyafter);
 
-    keyboard;
+    % Convert labels back into gazes.
+    gazes = zeros(n, 2);
+    for i = 1:n
+        [predict_x, predict_y] = class_to_xy(labels(i), w, h, num_cells);
+        gazes(i, 1) = predict_x / w;
+        gazes(i, 2) = predict_y / h;
+    end
+    labels
 end
