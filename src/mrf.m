@@ -33,7 +33,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
                      num_cells, n, ...
                      sigma, c_2, c_3, c_b)
     % Plot unary terms.
-    DEBUG = 0;
+    DEBUG = 1;
 
     % Setup.
     [h, w, ~] = size(im);
@@ -43,6 +43,13 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     unnormalized_faces = zeros(n, 2);
     unnormalized_faces(:, 1) = w * faces(:, 1);
     unnormalized_faces(:, 2) = h * faces(:, 2);
+
+    % Discrete faces.
+    discrete_faces = zeros(n, 2);
+    for i = 1:n
+        [x, y] = xy_to_discrete_xy(unnormalized_faces(i, 1:2), w, h, num_cells);
+        discrete_faces(i, :) = [x, y];
+    end
 
     % Project gaze predictions back into image space.
     unnormalized_predictions = zeros(n, 2);
@@ -64,6 +71,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     for i = 1:c
         % The unary potential row denotes the label/location.
         [look_x, look_y] = class_to_xy(i, w, h, num_cells);
+        [cell_x, cell_y] = xy_to_discrete_xy([look_x, look_y], w, h, num_cells);
 
         % The unary potential column denotes the person number.
         for j = 1:n
@@ -71,6 +79,8 @@ function gazes = mrf(im, faces, orientations, predictions, ...
                                      unnormalized_faces(j, :), ...
                                      orientations(j, :), ...
                                      unnormalized_faces, ...
+                                     [cell_x, cell_y], ...
+                                     discrete_faces, ...
                                      sigma, c_2, c_3);
         end
 
@@ -101,7 +111,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     % Add graph structure for all cells.
     for u_x = 1:num_cells
         for u_y = 1:num_cells
-            u = xy_discrete_to_class(u_x - 1, u_y - 1, num_cells);
+            u = xy_discrete_to_class(u_x, u_y, num_cells);
 
             for i = 1:size(adj, 1)
                 v_x = u_x + adj(i, 1);
@@ -110,7 +120,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
                 % Connected to cardinal direction neighbors.
                 if v_x >= 1 && v_x <= num_cells && ...
                     v_y >= 1 && v_y <= num_cells
-                    v = xy_discrete_to_class(v_x - 1, v_y - 1, num_cells);
+                    v = xy_discrete_to_class(v_x, v_y, num_cells);
                     labelcost(u, v) = 1;
                 end
             end

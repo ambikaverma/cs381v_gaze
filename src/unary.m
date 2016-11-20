@@ -6,10 +6,14 @@
 % orientation - (1x2) unit vector of head orientation.
 % faces - (nx2) positions of other faces.
 % sigma - (float) model parameter, variance of gaze distribution.
+% discrete_look - (1x2) cell position of label.
+% discrete_faces - (nx2) cell positions of faces.
+% sigma - (float) model parameter, variance of gaze distribution.
 % c_2 - (float) model parameter, bias to push the gaze away its own face.
 % c_3 - (float) model parameter, bias to push look at other faces.
 
 function potential = unary(look, face, orientation, faces, ...
+                           discrete_look, discrete_faces, ...
                            sigma, c_2, c_3)
     % Gaussian distribution over all cells.
     look_dir = (look - face) / norm(look - face);
@@ -21,7 +25,7 @@ function potential = unary(look, face, orientation, faces, ...
 
     % Bias gazes towards looking at other faces.
     phi_3 = 0;
-    if looking_at_face(look, faces)
+    if looking_at_face(discrete_look, discrete_faces)
         phi_3 = c_3;
     else
         phi_3 = 1;

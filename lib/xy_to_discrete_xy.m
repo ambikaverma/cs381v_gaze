@@ -28,6 +28,6 @@ function [x, y] = xy_to_discrete_xy(position, width, height, num_cells)
     cell_height = ceil(height / num_cells);
 
     % Discretized grid positions.
-    x = floor(position(1) / cell_width);
-    y = floor(position(2) / cell_height);
+    x = floor(position(1) / cell_width) + 1;
+    y = floor(position(2) / cell_height) + 1;
 end

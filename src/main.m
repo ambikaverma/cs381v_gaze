@@ -19,7 +19,7 @@ addpath(GCMEX_PATH);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Enable plotting.
-DEBUG = 0;
+DEBUG = 1;
 
 % Model parameters, see mrf.m for details.
 NUM_CELLS = 10;
@@ -55,6 +55,16 @@ for i = 1:BATCH_SIZE
     % Jiggled eye position and gaze vectors.
     [faces, orientations] = get_face_orientation(eyes, gazes);
 
+    % Plotting stuff.
+    if DEBUG == 1
+        clf;
+        image(im);
+        hold on;
+        plot_image_eye_gaze(im, eyes, gazes, 'r');
+        plot_image_eye_gaze(im, eyes, cnn_predictions, 'c');
+        plot_image_face_orientation(im, faces, orientations);
+    end
+
     % Calculate maximum joint probability.
     try
         predictions = mrf(im, faces, orientations, cnn_predictions, ...
@@ -71,23 +81,16 @@ for i = 1:BATCH_SIZE
         total_angular_error = total_angular_error + ...
                               sum(angular_error) / size(angular_error, 1);
         total = total + 1;
+
+        % Plotting stuff.
+        if DEBUG == 1
+            plot_image_eye_gaze(im, eyes, predictions, 'g');
+            hold off;
+            pause;
+        end
     catch
         fprintf('%s failed\n', image_path);
     end
-
-    % Plotting stuff.
-    if DEBUG == 1
-        clf;
-        image(im);
-        hold on;
-        plot_image_eye_gaze(im, eyes, gazes, 'r');
-        plot_image_eye_gaze(im, eyes, cnn_predictions, 'c');
-        plot_image_face_orientation(im, faces, orientations);
-        plot_image_eye_gaze(im, eyes, predictions, 'g');
-        hold off;
-        pause;
-    end
-
 end
 
 average_angular_error = total_angular_error / total

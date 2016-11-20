@@ -9,5 +9,5 @@
 
 function class = xy_discrete_to_class(x, y, num_cells)
     % 1 indexed.
-    class = 1 + y * num_cells + x;
+    class = 1 + (y - 1) * num_cells + (x - 1);
 end
