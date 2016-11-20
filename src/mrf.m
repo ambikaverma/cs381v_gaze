@@ -25,10 +25,15 @@
 %   c_b - (float) model parameter, bias to push look at similar places.
 % Returns:
 %   gazes (nx2) refined gaze predictions in normalized coordinates [0, 1].
+% Throws:
+%   MException if the energy after is NaN (faulty inputs?).
 
 function gazes = mrf(im, faces, orientations, predictions, ...
                      num_cells, n, ...
                      sigma, c_2, c_3, c_b)
+    % Plot unary terms.
+    DEBUG = 0;
+
     % For GCMex alpha expansion solver.
     addpath('/Users/bradyzhou/code/cs381v_final/third_party/GCMex');
 
@@ -64,23 +69,25 @@ function gazes = mrf(im, faces, orientations, predictions, ...
 
         % The unary potential column denotes the person number.
         for j = 1:n
-            unary_pot(i, j) = 1 / unary([look_x, look_y], ...
-                                    unnormalized_faces(j, :), ...
-                                    orientations(j, :), ...
-                                    unnormalized_faces, ...
-                                    sigma, c_2, c_3);
+            unary_pot(i, j) = -unary([look_x, look_y], ...
+                                     unnormalized_faces(j, :), ...
+                                     orientations(j, :), ...
+                                     unnormalized_faces, ...
+                                     sigma, c_2, c_3);
         end
 
         % Debug.
-        text(look_x, look_y, sprintf('%.2f', unary_pot(i, 1)), ...
-             'Unit', 'Data', 'Color', 'r');
+        if DEBUG == 1
+            text(look_x, look_y, sprintf('%.2f', unary_pot(i, 1)), ...
+                 'Unit', 'Data', 'Color', 'r');
+        end
     end
 
     % Populate pairwise label costs.
     for i = 1:n
         for j = 1:n
             if i == j
-                pairwise_pot(i, j) = 1 / c_b;
+                pairwise_pot(i, j) = -c_b;
             else
                 pairwise_pot(i, j) = 1;
             end
@@ -115,14 +122,22 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     % Solve for minimizing energy.
     [labels, energy, energyafter] = GCMex(classes, single(unary_pot), ...
                                           pairwise_pot, single(labelcost), 0);
-    fprintf('Energy solved. Before: %.3f, After: %.3f\n', energy, energyafter);
+
+    if ~isnan(energyafter)
+        fprintf('Energy solved. Before: %.3f, After: %.3f\n', energy, energyafter);
+    else
+        throw(MException('NaN energy after solving.'));
+    end
 
     % Convert labels back into gazes.
     gazes = zeros(n, 2);
     for i = 1:n
-        [predict_x, predict_y] = class_to_xy(labels(i), w, h, num_cells);
+        gaze_label = labels(i);
+        if gaze_label == 0
+            gaze_label = classes(i);
+        end
+        [predict_x, predict_y] = class_to_xy(gaze_label, w, h, num_cells);
         gazes(i, 1) = predict_x / w;
         gazes(i, 2) = predict_y / h;
     end
-    labels
 end
