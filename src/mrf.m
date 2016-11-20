@@ -1,5 +1,5 @@
 % This function returns an array of xy pairs of gaze predictions.
-% IMPORTANT: assumes GCMex has been imported already.
+% IMPORTANT: assumes GCMex, lib has been imported already.
 %
 % The expanded distribution looks like the following -
 % ---------------------------------------------------------------
