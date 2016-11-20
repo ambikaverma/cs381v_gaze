@@ -5,14 +5,25 @@
 % (xy array) pairs of eyes
 % (xy array) pairs of gazes
 
-% Utility functions.
-addpath('/Users/bradyzhou/code/cs381v_final/lib');
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                Path setup.                                   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+[source_dir, ~, ~] = fileparts(mfilename('fullpath'));
+[main_dir, ~, ~] = fileparts(source_dir);
+
+% Included source code.
+LIB_PATH = fullfile(main_dir, './lib');
 
 % Path to train annotations.
-TRAIN = '/Users/bradyzhou/code/cs381v_final/data/gazefollow/train_annotations.mat'
+TRAIN = fullfile(main_dir, './data/gazefollow/train_annotations.mat');
 
 % Path to predicted gazes.
-PREDICTIONS = '/Users/bradyzhou/code/cs381v_final/data/train_gazes.txt';
+PREDICTIONS = fullfile(main_dir, './data/train_gazes.txt');
+
+% Add paths.
+addpath(LIB_PATH);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 data = load(TRAIN);
 multiple_gazes_path = get_duplicates(data.train_path);

@@ -1,4 +1,5 @@
 % This function returns an array of xy pairs of gaze predictions.
+% IMPORTANT: assumes GCMex has been imported already.
 %
 % The expanded distribution looks like the following -
 % ---------------------------------------------------------------
@@ -33,9 +34,6 @@ function gazes = mrf(im, faces, orientations, predictions, ...
                      sigma, c_2, c_3, c_b)
     % Plot unary terms.
     DEBUG = 0;
-
-    % For GCMex alpha expansion solver.
-    addpath('/Users/bradyzhou/code/cs381v_final/third_party/GCMex');
 
     % Setup.
     [h, w, ~] = size(im);
@@ -123,10 +121,10 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     [labels, energy, energyafter] = GCMex(classes, single(unary_pot), ...
                                           pairwise_pot, single(labelcost), 0);
 
-    if ~isnan(energyafter)
-        fprintf('Energy solved. Before: %.3f, After: %.3f\n', energy, energyafter);
-    else
+    if isnan(energyafter) || abs(energyafter) > 1e10
         throw(MException('NaN energy after solving.'));
+    else
+        fprintf('Energy solved. Before: %.3f, After: %.3f\n', energy, energyafter);
     end
 
     % Convert labels back into gazes.

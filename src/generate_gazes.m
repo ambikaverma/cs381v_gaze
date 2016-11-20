@@ -32,10 +32,6 @@ for i=1:number_samples
     try
         [x,y,heatmap,net] = predict_gaze(im, annotations.train_eyes{i}, net);
 
-        %Visualization
-        % g = floor([x_predict y_predict].*[size(im,2) size(im,1)]);
-        % e = floor(e.*[size(im,2) size(im,1)]);
-
         fprintf(fileID, '%s ', annotations.train_path{i});
         fprintf(fileID, '%d %d %d %d\n', annotations.train_eyes{i}, x, y);
     catch
