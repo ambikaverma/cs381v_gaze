@@ -55,7 +55,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     unnormalized_predictions(:, 2) = h * predictions(:, 2);
 
     % Initialize energy functions.
-    classes = zeros(1, n);
+    classes = ones(1, n);
     unary_pot = zeros(c, n);
     pairwise_pot = sparse(n, n);
     labelcost = zeros(c);
@@ -63,10 +63,10 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     % Populate initial guesses.
     for i = 1:n
         % Initialized guesses from CNN.
-        % classes(i) = xy_to_class(unnormalized_predictions(i, :), w, h, num_cells);
+        classes(i) = xy_to_class(unnormalized_predictions(i, :), w, h, num_cells);
 
         % Random intialized guesses.
-        classes(i) = randi(c);
+        % classes(i) = randi(c);
     end
 
     % Populate unary potentials.
@@ -84,6 +84,11 @@ function gazes = mrf(im, faces, orientations, predictions, ...
                                      [cell_x, cell_y], ...
                                      discrete_faces, ...
                                      sigma, c_2, c_3);
+
+            % Initialize classes to optimized unaries.
+            % if unary_pot(i, j) < unary_pot(classes(j), j)
+            %     classes(j) = i;
+            % end
         end
 
         % Debug.

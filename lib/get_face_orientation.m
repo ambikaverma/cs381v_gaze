@@ -9,11 +9,14 @@
 
 function [faces, orientations] = get_face_orientation(eyes, gazes)
     SIGMA_FACE = 0.01;
-    SIGMA_ORIENTATION = 0.1;
+    SIGMA_ORIENTATION = 0.3;
     n = size(eyes, 1);
 
     % True gaze orientations, to be jiggled later.
     orientations = gazes - eyes;
+    for i = 1:n
+        orientations(i, :) = orientations(i, :) / norm(orientations(i, :));
+    end
 
     % Jiggle the positions
     faces = SIGMA_FACE * randn(n, 2) + eyes;

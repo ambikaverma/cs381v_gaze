@@ -56,7 +56,7 @@ function [params] = train(batch_size, epochs, root_image_path, data)
                                   SIGMA, C_2, C_3, C_B, 0);
 
                 % Calculate average difference in angles.
-                angular_error = calculate_average_angular_error(eyes, predictions, ...
+                angular_error = calculate_average_angular_error(faces, predictions, ...
                                                                 eyes, gazes);
                 total_angular_error = total_angular_error + angular_error;
 

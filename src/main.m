@@ -22,14 +22,14 @@ addpath(GCMEX_PATH);
 DEBUG = 1;
 
 % Experiment parameters.
-BATCH_SIZE = 250;
+BATCH_SIZE = 2000;
 
 % Model parameters, see mrf.m for details.
 NUM_CELLS = 20;
-SIGMA = 0.941066;
-C_2 = 0.035545;
-C_3 = 4.188987;
-C_B = 0.953853;
+SIGMA = 1.147413;
+C_2 = 0.039289;
+C_3 = 2.721577;
+C_B = 0.599984;
 
 % Initialize info.
 data = load(GAZE_MAT);
@@ -38,6 +38,7 @@ n = size(data.gaze_info_array, 1);
 % Initialize info.
 multiple_gaze_data = data.gaze_info_array;
 indices = randperm(size(multiple_gaze_data, 1));
+indices = [1:n];
 
 % Error accumulators.
 total_angular_error = 0;
@@ -76,7 +77,7 @@ for i = 1:BATCH_SIZE
                           SIGMA, C_2, C_3, C_B, 0);
 
         % Calculate average angular error.
-        angular_error = calculate_average_angular_error(eyes, predictions, ...
+        angular_error = calculate_average_angular_error(faces, predictions, ...
                                                         eyes, gazes);
         total_angular_error = total_angular_error + angular_error;
 
@@ -88,13 +89,12 @@ for i = 1:BATCH_SIZE
 
         % Plotting stuff.
         if DEBUG == 1
-            plot_image_eye_gaze(im, eyes, predictions, 'g');
+            plot_image_eye_gaze(im, faces, predictions, 'g');
             hold off;
             pause;
         end
     catch ME
         fprintf('Image %s failed.\n', image_path);
-        failed = failed + 1;
     end
 end
 
