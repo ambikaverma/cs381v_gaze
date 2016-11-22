@@ -5,7 +5,7 @@ load('test_annotations.mat');
 [data,path]=xlsread('test_gaze.xlsx');
 load('train_annotations.mat');
 path=sort(path);
-i=478;
+i=1;
 while i<=size(path,1)
     close all
     i
