@@ -33,7 +33,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
                      num_cells, n, ...
                      sigma, c_2, c_3, c_b)
     % Plot unary terms.
-    DEBUG = 1;
+    DEBUG = 0;
 
     % Setup.
     [h, w, ~] = size(im);
@@ -97,7 +97,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
             if i == j
                 pairwise_pot(i, j) = -c_b;
             else
-                pairwise_pot(i, j) = 1;
+                pairwise_pot(i, j) = -(1 - c_b);
             end
         end
     end
@@ -132,8 +132,9 @@ function gazes = mrf(im, faces, orientations, predictions, ...
                                           pairwise_pot, single(labelcost), 0);
 
     if isnan(energyafter) || abs(energyafter) > 1e10
-        throw(MException('NaN energy after solving.'));
-    else
+        ex = MException('GCMex:Error', 'NaN energy after solving.');
+        throw(ex);
+    else if DEBUG == 1
         fprintf('Energy solved. Before: %.3f, After: %.3f\n', energy, energyafter);
     end
 

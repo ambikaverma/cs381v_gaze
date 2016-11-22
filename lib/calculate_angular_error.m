@@ -15,6 +15,7 @@ function result = calculate_angular_error(head1, gaze1, head2, gaze2)
     v = v / norm(v);
     result = acosd(dot(u, v));
     if isnan(result)
-        throw(MException('Invalid inputs for acosd.\n'));
+        ex = MException('ArithmeticError:acosd', 'Invalid inputs for acosd.');
+        throw(ex);
     end
 end
