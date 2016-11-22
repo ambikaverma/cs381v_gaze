@@ -1,16 +1,18 @@
 % This function returns the unary potential of a single node.
 %
 % Args:
-% look - (1x2) place the person is looking at, this is the gaze to assess.
-% face - (1x2) position of the face/eye.
-% orientation - (1x2) unit vector of head orientation.
-% faces - (nx2) positions of other faces.
-% sigma - (float) model parameter, variance of gaze distribution.
-% discrete_look - (1x2) cell position of label.
-% discrete_faces - (nx2) cell positions of faces.
-% sigma - (float) model parameter, variance of gaze distribution.
-% c_2 - (float) model parameter, bias to push the gaze away its own face.
-% c_3 - (float) model parameter, bias to push look at other faces.
+%   look - (1x2) place the person is looking at, this is the gaze to assess.
+%   face - (1x2) position of the face/eye.
+%   orientation - (1x2) unit vector of head orientation.
+%   faces - (nx2) positions of other faces.
+%   sigma - (float) model parameter, variance of gaze distribution.
+%   discrete_look - (1x2) cell position of label.
+%   discrete_faces - (nx2) cell positions of faces.
+%   sigma - (float) model parameter, variance of gaze distribution.
+%   c_2 - (float) model parameter, bias to push the gaze away its own face.
+%   c_3 - (float) model parameter, bias to push look at other faces.
+% Returns:
+%   potential (float)
 
 function potential = unary(look, face, orientation, faces, ...
                            discrete_look, discrete_faces, ...

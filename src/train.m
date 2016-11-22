@@ -22,9 +22,9 @@ function [params] = train(batch_size, epochs, root_image_path, data)
     min_l2_error = Inf;
 
     for epoch = 1:epochs
-        SIGMA = rand() * 2;
-        C_2 = rand() * 2;
-        C_3 = rand() * 2;
+        SIGMA = rand() * 5;
+        C_2 = rand() * 0.1;
+        C_3 = rand() * 5;
         C_B = 0.5 + rand() / 2;
 
         % Error accumulators.
@@ -53,7 +53,7 @@ function [params] = train(batch_size, epochs, root_image_path, data)
                 % Calculate maximum joint probability.
                 predictions = mrf(im, faces, orientations, cnn_predictions, ...
                                   NUM_CELLS, num_subjects, ...
-                                  SIGMA, C_2, C_3, C_B);
+                                  SIGMA, C_2, C_3, C_B, 0);
 
                 % Calculate average difference in angles.
                 angular_error = calculate_average_angular_error(eyes, predictions, ...
@@ -66,7 +66,7 @@ function [params] = train(batch_size, epochs, root_image_path, data)
 
                 % Number of successful runs.
                 total = total + 1;
-            catch
+            catch ME
                 failed = failed + 1;
             end
         end
@@ -79,14 +79,14 @@ function [params] = train(batch_size, epochs, root_image_path, data)
         batch_angular_error = total_angular_error / total;
         batch_l2_error = total_l2_error / total;
 
-        if batch_angular_error < min_angular_error && batch_l2_error < min_l2_error
+        if batch_l2_error < min_l2_error
             min_angular_error = batch_angular_error
             min_l2_error = batch_l2_error
 
-            fprintf('SIGMA = %f\n', SIGMA);
-            fprintf('C_2 = %f\n', C_2);
-            fprintf('C_3 = %f\n', C_3);
-            fprintf('C_B = %f\n', C_B);
+            fprintf('SIGMA = %f;\n', SIGMA);
+            fprintf('C_2 = %f;\n', C_2);
+            fprintf('C_3 = %f;\n', C_3);
+            fprintf('C_B = %f;\n', C_B);
 
             params = [SIGMA; C_2; C_3; C_B];
         end

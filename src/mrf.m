@@ -24,6 +24,7 @@
 %   c_2 - (float) model parameter, bias to push the gaze away its own face.
 %   c_3 - (float) model parameter, bias to push look at other faces.
 %   c_b - (float) model parameter, bias to push look at similar places.
+%   debug - (bool) debug mode.
 % Returns:
 %   gazes (nx2) refined gaze predictions in normalized coordinates [0, 1].
 % Throws:
@@ -31,10 +32,7 @@
 
 function gazes = mrf(im, faces, orientations, predictions, ...
                      num_cells, n, ...
-                     sigma, c_2, c_3, c_b)
-    % Plot unary terms.
-    DEBUG = 0;
-
+                     sigma, c_2, c_3, c_b, debug)
     % Setup.
     [h, w, ~] = size(im);
     c = num_cells^2;
@@ -60,11 +58,15 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     classes = zeros(1, n);
     unary_pot = zeros(c, n);
     pairwise_pot = sparse(n, n);
-    labelcost = zeros(c, c);
+    labelcost = zeros(c);
 
-    % Populate initial guesses (use CNN's predictions).
+    % Populate initial guesses.
     for i = 1:n
-        classes(i) = xy_to_class(unnormalized_predictions(i, :), w, h, num_cells);
+        % Initialized guesses from CNN.
+        % classes(i) = xy_to_class(unnormalized_predictions(i, :), w, h, num_cells);
+
+        % Random intialized guesses.
+        classes(i) = randi(c);
     end
 
     % Populate unary potentials.
@@ -85,7 +87,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
         end
 
         % Debug.
-        if DEBUG == 1
+        if debug == 1
             text(look_x, look_y, sprintf('%.2f', unary_pot(i, 1)), ...
                  'Unit', 'Data', 'Color', 'r');
         end
@@ -102,39 +104,14 @@ function gazes = mrf(im, faces, orientations, predictions, ...
         end
     end
 
-    % Relative coordinates for neighbors.
-    adj = [-1,  0;
-            1,  0;
-            0  -1;
-            0,  1];
-
-    % Add graph structure for all cells.
-    for u_x = 1:num_cells
-        for u_y = 1:num_cells
-            u = xy_discrete_to_class(u_x, u_y, num_cells);
-
-            for i = 1:size(adj, 1)
-                v_x = u_x + adj(i, 1);
-                v_y = u_y + adj(i, 2);
-
-                % Connected to cardinal direction neighbors.
-                if v_x >= 1 && v_x <= num_cells && ...
-                    v_y >= 1 && v_y <= num_cells
-                    v = xy_discrete_to_class(v_x, v_y, num_cells);
-                    labelcost(u, v) = 1;
-                end
-            end
-        end
-    end
-
     % Solve for minimizing energy.
     [labels, energy, energyafter] = GCMex(classes, single(unary_pot), ...
-                                          pairwise_pot, single(labelcost), 0);
+                                          pairwise_pot, single(labelcost), 1);
 
     if isnan(energyafter) || abs(energyafter) > 1e10
         ex = MException('GCMex:Error', 'NaN energy after solving.');
         throw(ex);
-    else if DEBUG == 1
+    else if debug == 1
         fprintf('Energy solved. Before: %.3f, After: %.3f\n', energy, energyafter);
     end
 

@@ -19,17 +19,10 @@ addpath(GCMEX_PATH);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Enable plotting.
-DEBUG = 1;
+DEBUG = 0;
 
 % Experiment parameters.
 BATCH_SIZE = 250;
-
-% Model parameters, see mrf.m for details.
-NUM_CELLS = 20;
-SIGMA = 0.941066;
-C_2 = 0.035545;
-C_3 = 4.188987;
-C_B = 0.953853;
 
 % Initialize info.
 data = load(GAZE_MAT);
@@ -52,46 +45,29 @@ for i = 1:BATCH_SIZE
     cnn_predictions = gaze_data.predictions;
     gazes = gaze_data.gazes;
 
-    % Extra information.
-    im = imread(image_path);
-    num_subjects = size(eyes, 1);
-
-    % Jiggled eye position and gaze vectors.
-    [faces, orientations] = get_face_orientation(eyes, gazes);
-
     % Plotting stuff.
     if DEBUG == 1
         clf;
-        image(im);
+        image(imread(image_path));
         hold on;
         plot_image_eye_gaze(im, eyes, gazes, 'r');
         plot_image_eye_gaze(im, eyes, cnn_predictions, 'c');
-        plot_image_face_orientation(im, faces, orientations);
+        hold off;
+        pause;
     end
 
     try
-        % Calculate maximum joint probability.
-        predictions = mrf(im, faces, orientations, cnn_predictions, ...
-                          NUM_CELLS, num_subjects, ...
-                          SIGMA, C_2, C_3, C_B, 0);
-
-        % Calculate average angular error.
-        angular_error = calculate_average_angular_error(eyes, predictions, ...
+        % Calculate average difference in angles.
+        angular_error = calculate_average_angular_error(eyes, cnn_predictions, ...
                                                         eyes, gazes);
         total_angular_error = total_angular_error + angular_error;
 
         % Calculate average normalized euclidean distance.
-        l2_error = calculate_average_l2_error(predictions, gazes);
+        l2_error = calculate_average_l2_error(cnn_predictions, gazes);
         total_l2_error = total_l2_error + l2_error;
 
+        % Number of successful runs.
         total = total + 1;
-
-        % Plotting stuff.
-        if DEBUG == 1
-            plot_image_eye_gaze(im, eyes, predictions, 'g');
-            hold off;
-            pause;
-        end
     catch ME
         fprintf('Image %s failed.\n', image_path);
         failed = failed + 1;
