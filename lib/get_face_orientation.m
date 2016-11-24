@@ -8,8 +8,8 @@
 %   [faces, orientations] (nx2, nx2) perturbed locations.
 
 function [faces, orientations] = get_face_orientation(eyes, gazes)
-    SIGMA_FACE = 0.01;
-    SIGMA_ORIENTATION = 0.3;
+    SIGMA_FACE = 0.00;
+    SIGMA_ORIENTATION = 0.0;
     n = size(eyes, 1);
 
     % True gaze orientations, to be jiggled later.

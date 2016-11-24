@@ -58,13 +58,15 @@ for i = 1:BATCH_SIZE
     end
 
     try
+        predictions = rand(size(cnn_predictions, 1), 2);
+
         % Calculate average difference in angles.
-        angular_error = calculate_average_angular_error(eyes, cnn_predictions, ...
+        angular_error = calculate_average_angular_error(eyes, predictions, ...
                                                         eyes, gazes);
         total_angular_error = total_angular_error + angular_error;
 
         % Calculate average normalized euclidean distance.
-        l2_error = calculate_average_l2_error(cnn_predictions, gazes);
+        l2_error = calculate_average_l2_error(predictions, gazes);
         total_l2_error = total_l2_error + l2_error;
 
         % Number of successful runs.

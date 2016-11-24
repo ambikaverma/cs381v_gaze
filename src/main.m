@@ -26,10 +26,10 @@ BATCH_SIZE = 2000;
 
 % Model parameters, see mrf.m for details.
 NUM_CELLS = 20;
-SIGMA = 1.147413;
-C_2 = 0.039289;
-C_3 = 2.721577;
-C_B = 0.599984;
+SIGMA = 3.407696;
+C_2 = 0.083733;
+C_3 = 0.910963;
+C_B = 0.636215;
 
 % Initialize info.
 data = load(GAZE_MAT);
@@ -58,7 +58,7 @@ for i = 1:BATCH_SIZE
     num_subjects = size(eyes, 1);
 
     % Jiggled eye position and gaze vectors.
-    [faces, orientations] = get_face_orientation(eyes, gazes);
+    [faces, orientations] = get_face_orientation(eyes, cnn_predictions);
 
     % Plotting stuff.
     if DEBUG == 1

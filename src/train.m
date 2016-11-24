@@ -46,10 +46,10 @@ function [params] = train(batch_size, epochs, root_image_path, data)
             im = imread(image_path);
             num_subjects = size(eyes, 1);
 
-            % Jiggled eye position and gaze vectors.
-            [faces, orientations] = get_face_orientation(eyes, gazes);
-
             try
+                % Jiggled eye position and gaze vectors.
+                [faces, orientations] = get_face_orientation(eyes, cnn_predictions);
+
                 % Calculate maximum joint probability.
                 predictions = mrf(im, faces, orientations, cnn_predictions, ...
                                   NUM_CELLS, num_subjects, ...
@@ -79,7 +79,7 @@ function [params] = train(batch_size, epochs, root_image_path, data)
         batch_angular_error = total_angular_error / total;
         batch_l2_error = total_l2_error / total;
 
-        if batch_l2_error < min_l2_error
+        if batch_l2_error < min_l2_error && batch_angular_error < min_angular_error
             min_angular_error = batch_angular_error
             min_l2_error = batch_l2_error
 
