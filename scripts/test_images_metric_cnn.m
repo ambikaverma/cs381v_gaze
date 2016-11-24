@@ -6,12 +6,15 @@ load('test_annotations.mat');
 load('train_annotations.mat');
 path=sort(path);
 i=1;
+count=0;
 while i<=size(path,1)
     close all
     i
     index=find(strcmp(sort(test_path),path(i)));
     k=size(index,1);
-    
+    if k==1
+        count=count+1;
+    end
     eye_center=test_eyes(index(k));
     pred_gaze=data(i+k-1,3:4);
     gt_gaze=cell2mat(test_gaze(index(k)));
@@ -33,11 +36,11 @@ while i<=size(path,1)
 %     hold on
 %     line([e(1), g2(1)], [e(2) g2(2)],'Color','r');
 %     drawnow;
-%     pause(3)
+%     pause(1)
     
     i=i+k;
     
     
 end
-mean(l2_distance) 
-mean(angular_error)
+sum(l2_distance)/nnz(l2_distance)
+sum(angular_error)/nnz(angular_error)
