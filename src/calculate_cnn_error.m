@@ -45,6 +45,22 @@ for i = 1:BATCH_SIZE
     cnn_predictions = gaze_data.predictions;
     gazes = gaze_data.gazes;
 
+    try
+        % Calculate average difference in angles.
+        angular_error = calculate_average_angular_error(eyes, cnn_predictions, ...
+                                                        eyes, gazes);
+        total_angular_error = total_angular_error + angular_error;
+
+        % Calculate average normalized euclidean distance.
+        l2_error = calculate_average_l2_error(cnn_predictions, gazes);
+        total_l2_error = total_l2_error + l2_error;
+
+        % Number of successful runs.
+        total = total + 1;
+    catch ME
+        fprintf('Image %s failed.\n', image_path);
+    end
+
     % Plotting stuff.
     if DEBUG == 1
         im = imread(image_path);
@@ -55,24 +71,6 @@ for i = 1:BATCH_SIZE
         plot_image_eye_gaze(im, eyes, cnn_predictions, 'c');
         hold off;
         pause;
-    end
-
-    try
-        predictions = rand(size(cnn_predictions, 1), 2);
-
-        % Calculate average difference in angles.
-        angular_error = calculate_average_angular_error(eyes, predictions, ...
-                                                        eyes, gazes);
-        total_angular_error = total_angular_error + angular_error;
-
-        % Calculate average normalized euclidean distance.
-        l2_error = calculate_average_l2_error(predictions, gazes);
-        total_l2_error = total_l2_error + l2_error;
-
-        % Number of successful runs.
-        total = total + 1;
-    catch ME
-        fprintf('Image %s failed.\n', image_path);
     end
 end
 
