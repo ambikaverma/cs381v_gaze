@@ -10,7 +10,7 @@ GCMEX_PATH = fullfile(main_dir, './third_party/GCMEX');
 % Path to gazefollow dataset.
 IMAGE_PATH = fullfile(main_dir, './data/gazefollow');
 % Path to mat file with multiple gaze data.
-GAZE_MAT = fullfile(main_dir, './data/multiple_gaze_data.mat');
+GAZE_MAT = fullfile(main_dir, './data/multiple_gaze_train.mat');
 
 % Add paths.
 addpath(LIB_PATH);
@@ -40,7 +40,7 @@ total = 0;
 for i = 1:BATCH_SIZE
     % Extract from array.
     gaze_data = multiple_gaze_data(indices(i));
-    image_path = fullfile(IMAGE_PATH, gaze_data.path);
+    image_path = fullfile(IMAGE_PATH, gaze_data.image_path);
     eyes = gaze_data.eyes;
     cnn_predictions = gaze_data.predictions;
     gazes = gaze_data.gazes;

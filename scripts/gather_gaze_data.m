@@ -35,53 +35,71 @@ gaze_info = containers.Map;
 
 % Initialize the map.
 for i = 1:size(multiple_gazes_path, 1)
-    path = multiple_gazes_path(i, :);
-    gaze_info(path) = struct('path', path, ...
-                             'eyes', [], ...
-                             'predictions', [], ...
-                             'gazes', []);
+    image_path = multiple_gazes_path(i, :);
+    gaze_info(image_path) = struct('image_path', image_path, ...
+                                   'eyes', [], ...
+                                   'predictions', [], ...
+                                   'gazes', []);
 end
 
 % Go through all data.
 for i = 1:num_rows
-    path = data.train_path{i};
-    if ~gaze_info.isKey(path)
+    image_path = data.train_path{i};
+
+    % Ignore if the image does not contain multiple people.
+    if ~gaze_info.isKey(image_path)
         continue
     end
 
     % Add the extra data in.
-    info = gaze_info(path);
+    info = gaze_info(image_path);
     info.eyes = [info.eyes; cell2mat(data.train_eyes(i))];
     info.gazes = [info.gazes; cell2mat(data.train_gaze(i))];
-    gaze_info(path) = info;
+    % Temporarily will be eyes to populate corresponding cnn predictions later.
+    info.predictions = info.eyes;
+    gaze_info(image_path) = info;
 end
 
 % Get the CNN predictions.
-[filename, ~, ~, predict_x, predict_y] = textread(PREDICTIONS, '%s %f %f %f %f\n');
-predictions = [filename num2cell(predict_x) num2cell(predict_y)];
+[filename, eye_x, eye_y, predict_x, predict_y] = textread(PREDICTIONS, ...
+                                                          '%s %f %f %f %f\n');
+predictions = [filename ...
+               num2cell(eye_x) num2cell(eye_y) ...
+               num2cell(predict_x) num2cell(predict_y)];
 
 for i = 1:size(predictions, 1)
-    path = predictions{i, 1};
-    if ~gaze_info.isKey(path)
+    image_path = predictions{i, 1};
+
+    % Ignore if the image does not contain multiple people.
+    if ~gaze_info.isKey(image_path)
         continue
     end
 
+    eyes = cell2mat(predictions(i, 2:3));
+    cnn_prediction = cell2mat(predictions(i, 4:5));
+
     % Add the extra data in.
-    info = gaze_info(path);
-    info.predictions = [info.predictions; ...
-                        cell2mat(predictions(i, 2:3))];
-    gaze_info(path) = info;
+    info = gaze_info(image_path);
+
+    % Find the eye that corresponds with the guess.
+    for j = 1:size(info.eyes, 1)
+        if norm(eyes - info.eyes(j, :)) < 1e-5
+            info.predictions(j, :) = cnn_prediction;
+        end
+    end
+
+    gaze_info(image_path) = info;
 end
 
 % Turn the map into an array.
 gaze_info_keys = gaze_info.keys;
-gaze_info_array = repmat(struct('path', '', ...
+gaze_info_array = repmat(struct('image_path', '', ...
                                 'eyes', [], ...
                                 'predictions', [], ...
                                 'gazes', []), ...
                          num_multiple, 1);
 for i = 1:size(gaze_info_keys, 2)
-    path_cell = gaze_info_keys(i);
-    path = path_cell{1};
-    gaze_info_array(i) = gaze_info(path);
+    image_path_cell = gaze_info_keys(i);
+    image_path = image_path_cell{1};
+    gaze_info_array(i) = gaze_info(image_path);
 end

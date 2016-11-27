@@ -91,11 +91,20 @@ function gazes = mrf(im, faces, orientations, predictions, ...
             % end
         end
 
-        % Debug.
+        % Prints the unary potentials of a single label on all cells.
         if debug == 1
             text(look_x, look_y, sprintf('%.2f', unary_pot(i, 1)), ...
                  'Unit', 'Data', 'Color', 'r');
+
+            % Print cell label.
+            % text(look_x, look_y, sprintf('%d', i), 'Color', 'g');
         end
+    end
+
+    % The potentials are shown for this face.
+    if debug == 1
+        plot(unnormalized_faces(1, 1), unnormalized_faces(1, 2), ...
+             'w.', 'Markersize', 30);
     end
 
     % Populate pairwise label costs.
@@ -109,6 +118,17 @@ function gazes = mrf(im, faces, orientations, predictions, ...
         end
     end
 
+    % The following cases cause seg faults in GCMex.
+    if c_b == 1
+        ex = MException('MRF:Error', ...
+                        'c_b must be a value in the range [0.5, 1)].');
+        throw(ex);
+    else if any(isnan(unary_pot))
+        ex = MException('MRF:Error', ...
+                        'Unary potential was NaN. Check parameters.');
+        throw(ex);
+    end
+
     % Solve for minimizing energy.
     [labels, energy, energyafter] = GCMex(classes, single(unary_pot), ...
                                           pairwise_pot, single(labelcost), 1);
@@ -116,7 +136,7 @@ function gazes = mrf(im, faces, orientations, predictions, ...
     if isnan(energyafter) || abs(energyafter) > 1e10
         ex = MException('GCMex:Error', 'NaN energy after solving.');
         throw(ex);
-    else if debug == 1
+    elseif debug == 1
         fprintf('Energy solved. Before: %.3f, After: %.3f\n', energy, energyafter);
     end
 

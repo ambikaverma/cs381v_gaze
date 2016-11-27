@@ -10,7 +10,7 @@ GCMEX_PATH = fullfile(main_dir, './third_party/GCMEX');
 % Path to gazefollow dataset.
 IMAGE_PATH = fullfile(main_dir, './data/gazefollow');
 % Path to mat file with multiple gaze data.
-GAZE_MAT = fullfile(main_dir, './data/multiple_gaze_data.mat');
+GAZE_MAT = fullfile(main_dir, './data/multiple_gaze_train.mat');
 
 % Add paths.
 addpath(LIB_PATH);
@@ -19,17 +19,17 @@ addpath(GCMEX_PATH);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Enable plotting.
-DEBUG = 1;
+DEBUG = 0;
 
 % Experiment parameters.
 BATCH_SIZE = 2000;
 
 % Model parameters, see mrf.m for details.
-NUM_CELLS = 20;
-SIGMA = 3.407696;
-C_2 = 0.083733;
-C_3 = 0.910963;
-C_B = 0.636215;
+NUM_CELLS = 5;
+SIGMA = 1.800000;
+C_2 = 0.000000;
+C_3 = 4.500000;
+C_B = 0.800000;
 
 % Initialize info.
 data = load(GAZE_MAT);
@@ -38,7 +38,6 @@ n = size(data.gaze_info_array, 1);
 % Initialize info.
 multiple_gaze_data = data.gaze_info_array;
 indices = randperm(size(multiple_gaze_data, 1));
-indices = [1:n];
 
 % Error accumulators.
 total_angular_error = 0;
@@ -48,7 +47,7 @@ total = 0;
 for i = 1:BATCH_SIZE
     % Extract from array.
     gaze_data = multiple_gaze_data(indices(i));
-    image_path = fullfile(IMAGE_PATH, gaze_data.path);
+    image_path = fullfile(IMAGE_PATH, gaze_data.image_path);
     eyes = gaze_data.eyes;
     cnn_predictions = gaze_data.predictions;
     gazes = gaze_data.gazes;
@@ -74,7 +73,7 @@ for i = 1:BATCH_SIZE
         % Calculate maximum joint probability.
         predictions = mrf(im, faces, orientations, cnn_predictions, ...
                           NUM_CELLS, num_subjects, ...
-                          SIGMA, C_2, C_3, C_B, 0);
+                          SIGMA, C_2, C_3, C_B, DEBUG);
 
         % Calculate average angular error.
         angular_error = calculate_average_angular_error(faces, predictions, ...
@@ -95,6 +94,9 @@ for i = 1:BATCH_SIZE
         end
     catch ME
         fprintf('Image %s failed.\n', image_path);
+
+        % Print exceptions.
+        % fprintf('%s\n', getReport(ME));
     end
 end
 
