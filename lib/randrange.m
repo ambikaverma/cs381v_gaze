@@ -8,7 +8,7 @@
 
 function result = randrange(a, b)
     % Uniform distribution.
-    SAMPLES = 10;
+    SAMPLES = 100;
 
     % Chunk size.
     step = (b - a) / SAMPLES;

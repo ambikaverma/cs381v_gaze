@@ -19,17 +19,17 @@ addpath(GCMEX_PATH);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Enable plotting.
-DEBUG = 0;
+DEBUG = 1;
 
 % Experiment parameters.
-BATCH_SIZE = 2000;
+BATCH_SIZE = 200;
 
 % Model parameters, see mrf.m for details.
-NUM_CELLS = 5;
-SIGMA = 1.800000;
-C_2 = 0.000000;
-C_3 = 4.500000;
-C_B = 0.800000;
+NUM_CELLS = 40;
+SIGMA     = 1;
+C_2       = 0.1;
+C_3       = 1.5;
+C_B       = 0.9;
 
 % Initialize info.
 data = load(GAZE_MAT);
@@ -48,6 +48,7 @@ for i = 1:BATCH_SIZE
     % Extract from array.
     gaze_data = multiple_gaze_data(indices(i));
     image_path = fullfile(IMAGE_PATH, gaze_data.image_path);
+
     eyes = gaze_data.eyes;
     cnn_predictions = gaze_data.predictions;
     gazes = gaze_data.gazes;
@@ -73,7 +74,7 @@ for i = 1:BATCH_SIZE
         % Calculate maximum joint probability.
         predictions = mrf(im, faces, orientations, cnn_predictions, ...
                           NUM_CELLS, num_subjects, ...
-                          SIGMA, C_2, C_3, C_B, DEBUG);
+                          SIGMA, C_2, C_3, C_B, DEBUG && 0);
 
         % Calculate average angular error.
         angular_error = calculate_average_angular_error(faces, predictions, ...

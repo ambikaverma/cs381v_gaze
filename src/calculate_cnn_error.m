@@ -22,7 +22,7 @@ addpath(GCMEX_PATH);
 DEBUG = 0;
 
 % Experiment parameters.
-BATCH_SIZE = 1000;
+BATCH_SIZE = 2000;
 
 % Initialize info.
 data = load(GAZE_MAT);
@@ -63,8 +63,8 @@ for i = 1:BATCH_SIZE
 
     % Plotting stuff.
     if DEBUG == 1
-        im = imread(image_path);
         clf;
+        im = imread(image_path);
         image(im);
         hold on;
         plot_image_eye_gaze(im, eyes, gazes, 'r');

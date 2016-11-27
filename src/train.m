@@ -23,10 +23,10 @@ function [params, metrics] = train(grid_size, batch_size, epochs, ...
 
     for epoch = 1:epochs
         % Model parameters.
-        sigma = randrange(1, 5);
-        c_2 = randrange(0, .25);
-        c_3 = randrange(0, 5);
-        c_b = randrange(0.5, 1);
+        sigma = randrange(1, 3);
+        c_2 = randrange(0, .125);
+        c_3 = randrange(1.5, 6);
+        c_b = randrange(0.7, 1);
 
         % Error accumulators.
         total_angular_error = 0;

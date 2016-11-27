@@ -27,9 +27,17 @@ STEP = 5;
 data = load(GAZE_MAT);
 multiple_gaze_data = data.gaze_info_array;
 
-for i = 1:10
-    [model, metrics] = train(i * STEP, BATCH_SIZE, EPOCHS, IMAGE_PATH, ...
-                             multiple_gaze_data);
-    training_models(i, :) = model'
-    training_metrics(i, :) = metrics'
-end
+% Timing stuff.
+start_time = cputime();
+
+% Do some functional programming stuff.
+trainer = @(x) train(x, BATCH_SIZE, EPOCHS, IMAGE_PATH, multiple_gaze_data);
+[models, metrics] = arrayfun(@(x) trainer(x), [5:10].*STEP, ...
+                             'UniformOutput', false);
+
+% Results.
+end_time = cputime();
+fprintf('Elapsed training time: %fs\n', end_time - start_time);
+
+cell2mat(models)
+cell2mat(metrics)
