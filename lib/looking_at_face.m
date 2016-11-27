@@ -1,12 +1,14 @@
 % This function returns true if the gaze is at another face.
 %
 % Args:
-% look - (1x2) discretized place the person is looking at.
-% faces - (nx2) discretized positions of other faces.
+%   look - (1x2) discretized place the person is looking at.
+%   faces - (nx2) discretized positions of other faces.
+% Returns:
+%   (bool).
 
 function is_looking_at_face = looking_at_face(look, faces)
     % Number of cells away.
-    THRESHOLD = 1;
+    THRESHOLD = 0.5;
 
     % Iterate through faces and check distance.
     is_looking_at_face = false;

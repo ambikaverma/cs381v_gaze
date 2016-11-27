@@ -1,4 +1,6 @@
-% Params:
+% Returns distance between two points.
+%
+% Args:
 %   gaze1: (x, y), a point
 %   gaze2: (x, y), a point
 % Returns:
