@@ -12,6 +12,11 @@
 
 \usepackage[pagebackref=true,breaklinks=true,colorlinks,bookmarks=false]{hyperref}
 
+\setlength\abovedisplayskip{1pt}
+\setlength\belowdisplayskip{1pt}
+\setlength\abovedisplayshortskip{1pt}
+\setlength\belowdisplayshortskip{1pt}
+
 \begin{document}
 
 \title{Where Are They Really Looking?}
@@ -72,14 +77,43 @@ The saliency and gaze masks obtained are then combined through an elementwise la
 
 \subsection{Social Interactions MRF Model}
 
-Markov random fields are a form of probabilistic graph models that have been heavily used throughout the computer vision field to solve classification problems. Markov random fields have proved to be effective in certain applications like image segmentation and parsing text (NLP). The goal of using an MRF is find a labeling $\{p_1 = l_1,\ p_2 = l_2,\ \dots,\ p_n = l_n\}$ such that the joint probability $P(p_1 = l_1,\ p_2 = l_2,\ \dots,\ p_n = l_n)$ is maximized.
+\textbf{Markov random fields} are a form of probabilistic graph models that have been heavily used throughout the computer vision field to solve classification problems. Markov random fields have proved to be effective in certain applications like image segmentation and parsing text (NLP). The goal of using an MRF is find a labeling $\{p_1 = l_1,\ p_2 = l_2,\ \dots,\ p_n = l_n\}$ such that the joint probability $P(p_1 = l_1,\ p_2 = l_2,\ \dots,\ p_n = l_n)$ is maximized.
+
+To perform energy minimization for the MRF, direct inference is intractable. The number of possible labelings for $n$ people using and a grid size of $25 \times 25$ is $ (25 \times 25)^n$. The complexity grows exponentially with the number of people with a high constant and a direct solver is not possible to use. We use a graph cut algorithm \cite{boykov2001fast} for approximate energy minimization that requires an initial labeling for each person. The method, alpha expansion, then iterate upon this initial labeling until convergence.
 
 We use the graphical model from \cite{fathi2012social} to refine the gaze predictions from \cite{nips15_recasens}. The MRF model is used to utilize the relationship between the multiple actors in a scene. The motivation for this approach stems for example from scenes where multiple actors are looking at the same location. In case of individual predictions there is no way for benefitting from the information we have about the gaze of other actors in the scene, whereas joint prediction allows us to give higher weights to locations which lie in the direction of gaze of an actor and are also looked at by other actors in the scene.
 
-The MRF model implementation uses the following unary and pairwise potentials. The unary potentials allows the model to predict the direction of the gaze based on head position and orientation vectors and on the other hand the pairwise potentials capture the interaction between actors in the scene.
+The MRF model implementation uses the following unary and pairwise potentials. The unary potentials allows the model to predict the direction of the gaze based on head position and orientation vectors and on the other hand the pairwise potentials capture the interaction between actors in the scene. \\
 
-The parameters *list of parameters* are learnt through training images with more than one actor in the scene and the model is optimized through alpha-expansion method.
-Additionally, the image space which is the set of all possible gaze points is discretized into cells to make the inference less complicated.
+\begin{equation}
+  \phi_u = \phi_1 \cdot \phi_2 \cdot \phi_3
+\end{equation}
+
+The unary potential is a product over three different potential functions. Each of these potentials seeks to score the probability of a gaze (higher is better).
+
+\begin{equation}
+  \phi_1(l_i = l, d_i, f_i) = \frac{1}{\sigma \sqrt{2 \pi}} \exp{\big\{-\frac{\|d_i - (l - f_i)\|^2}{2 \sigma^2}\big\}}
+\end{equation}
+
+The first unary term is a guassian distribution of how well the predicted gaze aligns with the head orientation. This scores the labeling of a person $i$'s gaze to a location $l$. $l$ is a label, the cell of the predicted gaze. $d_i$ is a unit vector, the head orientation. $f_i$ is the position of the subject's face. $\sigma$ is a constant.
+
+\begin{equation}
+  \phi_2(l_i = l, f_i) = \frac{1}{1 + \exp{-c_t \cdot \|l - f_i\|}}
+\end{equation}
+
+The second unary term is thresholding function that assigns the score to $0$ if the predicted gaze is too close to a person's face. This is used to prevent extremely shot gazes (labeling a person's gaze to their own face). $c_t$ is a constant.
+
+\begin{equation}
+  \phi_3(l_i = l) = \begin{cases}
+    c_p, & \text{if $l \in \{f_1,\ f_2,\dots,\ f_n\}$}.\\
+    1, & \text{otherwise}.
+  \end{cases}
+\end{equation}
+
+The third unary term is to bias subjects' gazes towards other faces in the scene. $c_p$ is a constant.
+
+The parameters $\sigma,\ c_t,\ c_p$ are learned through training images with more than one actor in the scene through cross validation.
+Additionally, the image space which is the set of all possible gaze points is discretized into cells, we chose $50 \times 50$ empirically for performance reasons.
 
 \section{Experiments}
 
@@ -93,6 +127,8 @@ Each image in test set is annotated with ground truth head position and 10 groun
 
 To assess performance on joint gaze prediction, we test our model on a subset of the GazeFollow dataset that contains multiple subjects.
 
+The CNN model \cite{nips15_recasens} is trained on the GazeFollow dataset. 3500 images with multiple actors in the scene are used to train the MRF model and 1000 images are used for testing purpose.
+
 \subsection{Evaluation Metrics}
 
 We use two error metrics to quantify the performance of our method and to conduct comparative studies.
@@ -101,13 +137,14 @@ We use two error metrics to quantify the performance of our method and to conduc
 
 \textbf{Angular error} - The predicted gaze point is connected with the eye position to create a unit vector $v$, and the ground truth gaze point is connected with the eye position to create a unit vector $u$. The angular error is defined as $u^T v$, and converted to degrees.
 
+\subsection{Baselines}
+
+To see how well the MRF approach refines the predictions from \cite{nips15_recasens}, we will use the original predictions from \cite{nips15_recasens} as a baseline, as well as the MRF model from \cite{fathi2012social}. The intuition behind our method is that the initial seeds for the energy minimization algorithm affect the predicted gazes, and a "better`` initial prediction will increase performance. We include a few extra baselines. The first is random chance, which is assigning a random label to each subject. Next, another baseline is setting the initial labeling is set to labels that optimizes the unary terms. This is closest to \cite{fathi2012social}. Our model sets the initial labeling to the prediction acquired from the GazeFollow CNN. We use these different methods to compare and assess just how large of a factor the initial seeds are for energy minimization.
+
 \subsection{Experimental Results}
 
-We evaluate the performance of the following models on the GazeFollow \cite{nips15_recasens} dataset.
+We evaluate the performance of the described models on the GazeFollow \cite{nips15_recasens} dataset.
 
-To perform energy minimization for the MRF, direct inference is intractable. The number of possible labelings for $n$ people using and a grid size of $25 \times 25$ is $ (25 \times 25)^n$. The complexity grows exponentially with the number of people with a high constant and a direct solver is not possible to use. We use a graph cut algorithm \cite{boykov2001fast} for approximate energy minimization that requires an initial labeling for each person.
-
-The method, alpha expansion, will then iterate upon this initial labeling until convergence. In method 3, the initial labeling is set to random. In method 4, the initial labeling is set to labels that optimize the unary terms. In method 5, we set the initial labeling to the prediction acquired from the GazeFollow CNN. We use these different methods to compare and assess just how large of a factor the initial seeds are for energy minimization.
 
 \subsection{Qualitative Results}
 
