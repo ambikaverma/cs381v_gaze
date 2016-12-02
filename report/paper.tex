@@ -1,0 +1,128 @@
+\documentclass[10pt,twocolumn,letterpaper]{article}
+
+\usepackage{times}
+\usepackage{epsfig}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{cite}
+\usepackage{multirow}
+
+\usepackage[pagebackref=true,breaklinks=true,colorlinks,bookmarks=false]{hyperref}
+
+\begin{document}
+
+\title{Where Are They Really Looking?}
+
+\author{
+Ambika Verma\ \ \ Brady Zhou\\ \\
+{\fontsize{11}{13}\selectfont University of Texas at Austin}\\
+{\fontsize{10}{11}\selectfont \texttt{\{ambika,brady.zhou\}@utexas.edu}}
+}
+
+\maketitle
+
+\begin{abstract}
+    In this paper, we present a framework to predict where actors in an image are looking by utilizing joint attention and/or interaction characteristics. This approach is specifically useful in case of more than one person/actor being present in a scene. We use a combination of CNN \cite{nips15_recasens} and MRF \cite{fathi2012social} models to accomplish this task. The approach is motivated from recent state of the art work in Gaze Following (CNN) and Social Attention (MRF) domains.
+\end{abstract}
+
+\section{Introduction}
+
+In our day to day life we tend to interact with people and/or objects in a fairly predictable manner specifically in terms of social attention and/or interaction such as we tend to notice things that a group of people might be attending to. Additionally our gaze (direction we look in) is a strong indication of what we might do next. Thus, it is imperative for a computer or robot trying to predict the type of actions or interactions occurring in an image or video, to follow gaze of actors in a scene effectively. As a result, gaze following can be used for different high level tasks such as predicting visual saliency, activity recognition, active perception and behavioural analysis.
+
+As noted earlier we solely concentrate on gaze following task for multiple actors in an image or video, with the idea in mind that joint gaze prediction can benefit the task of gaze following since humans interact in a predictive manner. This leads to some of the assumptions made in this paper (which are derived from social attention domain) \cite{fathi2012social}, namely head orientation is a robust indicator of gaze direction and if another actor in the scene is looking at a particular location it is more likely for another person (with head orientation in the same direction) to looking at it as well.
+
+\subsection{Related Work}
+
+As noted by \cite{fathi2012social} there are only a few works which build upon the task of gaze following. There are three different scenarios where this task has been studied - Free-viewing Saliency, Social Attention/Interaction and true Gaze Following, we review each task briefly in this section.
+
+Identifying type of Social Attention/Interaction occurring in a scene inherently limits itself to scenes with multiple people only \cite{fathi2012social}[][][]. Though, it boasts of intuitive methods to perform joint gaze prediction. \cite{fathi2012social} develops MRF and CRF methods for their task of predicting type of interaction taking place in a scene, which can be applied to long first-person videos to filter out useful clips or subsets (similar to video summarization). This work utilizes an MRF model to predict where people are looking in a scene to later classify the type of interaction taking place using CRF. Thus, gaze following is utilized in such techniques in an implicit manner. The model developed utilizes joint predictions effectively, though is heavily biased to look at other faces in the scene. This bias is acceptable for identifying the type of interaction amongst people but does not generalize well for the gaze following task, wherein actors can be looking at another actor or an object.
+
+ On the other hand works in free-viewing saliency and gaze following tasks do include scenes with both multiple people and only one person. \cite{fathi2012social} is a CNN based model which is specifically tasked for gaze following utilizing head position and orientation along with saliency to accomplish the task. This method has several advantages such as it is robust in case of single actor being present in a scene, does not suffer from any evident bias of looking at people only (such as in \cite{nips15_recasens}) and the network architecture does not require extensive hand-crafted functions (such as those required in probabilistic models such as MRF or CRF). Though, these merits are far reaching the model uses a naive approach in cases where multiple actors are present in the scene, it resorts to providing predictions for each actor individually.
+
+ Another relevant work which utilizes gaze following is \cite{parks2015augmented} in which an actor’s gaze is used as an additional feature to generate more accurate free-viewing saliency maps. It has been noted in numerous works [],[],[],[] that the gaze of an actor in a scene influences where passive observers look during free-viewing. In this work the authors use head pose [] along with low level saliency [] to predict more accurately the semantically salient regions in a scene. This work does utilize joint predictions in case of multiple actors in the scene and it is worthy to note that considerable performance improvement is achieved over state of the art saliency methods []. Even though this method can be extended to gaze following task, it has not been evaluated on the same.
+
+ Works such as \cite{nips15_recasens} and \cite{parks2015augmented} utilize gaze following and joint predictions to achieve a secondary task. Thus, our approach is to combine the works of \cite{fathi2012social} and \cite{nips15_recasens} in a constructive manner to add joint prediction capability to the model developed in \cite{fathi2012social} with the goal of achieving higher performance for cases with multiple actors in the scene.
+
+\section{Technical Approach}
+
+As in \cite{nips15_recasens} we also assume that the head positions are provided and as demonstrated in \cite{parks2015augmented} a head detector with pose estimation can be effectively used with a few modifications.
+
+We plan to use the CNN network from \cite{nips15_recasens} with post-processing added through an MRF model which is designed on the lines of model used in [2] to account for joint gaze predictions. The overall architecture of our approach is illustrated in Fig.
+
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=0.95\linewidth]{images/cnn.png}
+  \end{center}
+  \vspace{-0.3cm}
+   \caption{The network architecture from \cite{nips15_recasens}.}
+  \vspace{-0.5cm}
+\end{figure}
+
+A given image along with head position is provided as input to the CNN. We only use images where there are multiple actors in the scene. The CNN then iterates through the image for each actor and gives as an output a two-dimensional position say (gx,gy) normalized by the image dimensions to lie between 0 and 1. This prediction is then used as an initial seed for MRF model. In addition the MRF model is also supplied with head location and orientation vectors, where orientations is obtained using the head position along with predicted gaze location and is jittered to replicate errors one would observe using a head detector. The MRF model then optimizes the unary and pairwise potentials to jointly refine the CNN predictions based on the predictions obtained for other actors in the scene.
+
+Following sections discuss the CNN and MRF models in detail.
+
+\subsection{GazeFollow CNN Model}
+
+The CNN model consists of two pathways, namely Gaze pathway and Saliency pathway. As noted in \cite{nips15_recasens}, the gaze pathway tends to learn predicting the direction of gaze based on the head orientation (this is the reason why we use the CNN prediction and head position to generate orientation vectors for the MRF model) and the saliency pathway tends to learn to find salient regions in the scene. The model is implemented in Caffe [] and the two pathways are equivalent to the first five layers of AlexNet []. The saliency pathway is initialized with weights from Places-CNN [] and gaze pathway is initialized with ImageNet-CNN [].
+The saliency and gaze masks obtained are then combined through an elementwise layer and final prediction is made through shifted grids. More details can be found in \cite{nips15_recasens}.
+
+\subsection{Social Interactions MRF Model}
+
+Markov random fields are a form of probabilistic graph models that have been heavily used throughout the computer vision field to solve classification problems. Markov random fields have proved to be effective in certain applications like image segmentation and parsing text (NLP). The goal of using an MRF is find a labeling $\{p_1 = l_1,\ p_2 = l_2,\ \dots,\ p_n = l_n\}$ such that the joint probability $P(p_1 = l_1,\ p_2 = l_2,\ \dots,\ p_n = l_n)$ is maximized.
+
+We use the graphical model from \cite{fathi2012social} to refine the gaze predictions from \cite{nips15_recasens}. The MRF model is used to utilize the relationship between the multiple actors in a scene. The motivation for this approach stems for example from scenes where multiple actors are looking at the same location. In case of individual predictions there is no way for benefitting from the information we have about the gaze of other actors in the scene, whereas joint prediction allows us to give higher weights to locations which lie in the direction of gaze of an actor and are also looked at by other actors in the scene.
+
+The MRF model implementation uses the following unary and pairwise potentials. The unary potentials allows the model to predict the direction of the gaze based on head position and orientation vectors and on the other hand the pairwise potentials capture the interaction between actors in the scene.
+
+The parameters *list of parameters* are learnt through training images with more than one actor in the scene and the model is optimized through alpha-expansion method.
+Additionally, the image space which is the set of all possible gaze points is discretized into cells to make the inference less complicated.
+
+\section{Experiments}
+
+\subsection{Dataset}
+
+GazeFollow dataset \cite{nips15_recasens} is used as part of this work. The dataset contains 122,143 training images and 4,782 test images drawn from varied other datasets such as SUN \cite{xiao2010sun}, MS COCO \{lin2014microsoft, Actions 40 \cite{yao2011human}, PASCAL \cite{everingham2010pascal}, ImageNet challenge \cite{russakovsky2015imagenet}, and Places dataset \cite{zhou2014learning}.
+
+Each image in training set is annotated with ground truth head position and ground truth gaze point.
+
+Each image in test set is annotated with ground truth head position and 10 ground truth gaze points to account for human consistency. We use average of these 10 gaze points in all further experiments.
+
+To assess performance on joint gaze prediction, we test our model on a subset of the GazeFollow dataset that contains multiple subjects.
+
+\subsection{Evaluation Metrics}
+
+We use two error metrics to quantify the performance of our method and to conduct comparative studies.
+
+\textbf{$L_2$ distance} - The images are normalized to 1x1 and the distance between ground truth and predicted gaze point is taken. For a single image with multiple people, we report the average of the errors, that is, $\frac{1}{n} \sum_{i=1}^n \sqrt{(p_x^{(i)} - g_x^{(i)})^2 + (p_y^{(i)} - g_y^{(i)})^2}$. \\
+
+\textbf{Angular error} - The predicted gaze point is connected with the eye position to create a unit vector $v$, and the ground truth gaze point is connected with the eye position to create a unit vector $u$. The angular error is defined as $u^T v$, and converted to degrees.
+
+\subsection{Experimental Results}
+
+We evaluate the performance of the following models on the GazeFollow \cite{nips15_recasens} dataset.
+
+To perform energy minimization for the MRF, direct inference is intractable. The number of possible labelings for $n$ people using and a grid size of $25 \times 25$ is $ (25 \times 25)^n$. The complexity grows exponentially with the number of people with a high constant and a direct solver is not possible to use. We use a graph cut algorithm \cite{boykov2001fast} for approximate energy minimization that requires an initial labeling for each person.
+
+The method, alpha expansion, will then iterate upon this initial labeling until convergence. In method 3, the initial labeling is set to random. In method 4, the initial labeling is set to labels that optimize the unary terms. In method 5, we set the initial labeling to the prediction acquired from the GazeFollow CNN. We use these different methods to compare and assess just how large of a factor the initial seeds are for energy minimization.
+
+\subsection{Qualitative Results}
+
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[width=0.95\linewidth]{images/fail1.png}
+  \end{center}
+  \vspace{-0.3cm}
+   \caption{This is a caption}
+  \vspace{-0.5cm}
+\end{figure}
+
+{\small
+\bibliography{paper}
+\bibliographystyle{IEEEtran}
+}
+
+\end{document}
