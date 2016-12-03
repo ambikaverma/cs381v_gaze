@@ -3,6 +3,7 @@
 \usepackage{times}
 \usepackage{epsfig}
 \usepackage{graphicx}
+\usepackage{flafter}
 \usepackage{float}
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -17,6 +18,7 @@
 \setlength\belowdisplayskip{1pt}
 \setlength\abovedisplayshortskip{1pt}
 \setlength\belowdisplayshortskip{1pt}
+\raggedbottom
 
 \begin{document}
 
@@ -46,6 +48,16 @@ As noted by \cite{nips15_recasens} there are only a few works which build upon t
 
 Identifying types of social attention and interactions occurring in a scene inherently limits itself to scenes with multiple people only \cite{fathi2012social} \cite{marin2014detecting} \cite{soo2015social}, \cite{soo2013predicting}, though, it boasts of intuitive methods to perform joint gaze prediction. \cite{fathi2012social} develops MRF and CRF methods for their task of predicting type of interaction taking place in a scene, which can be applied to long first-person videos to filter out useful clips or subsets (similar to video summarization). This work utilizes an MRF model to predict where people are looking in a scene to later classify the type of interaction taking place using CRF. Thus, gaze following is utilized in such techniques in an implicit manner. The model developed utilizes joint predictions effectively, though is heavily biased to look at other faces in the scene. This bias is acceptable for identifying the type of interaction amongst people but does not generalize well for the gaze following task, wherein actors can be looking at another actor or an object.
 
+\begin{figure*}[t]
+  \begin{center}
+    \includegraphics[width=0.70\linewidth]{images/dataset_images.PNG}
+  \end{center}
+  \vspace{-0.3cm}
+   \caption{Test set example images with annotations.}
+  \vspace{-0.5cm}
+\end{figure*}
+
+\vspace{3ex}
  On the other hand works in free-viewing saliency and gaze following tasks do include scenes with both multiple people and only one person. \cite{fathi2012social} is a CNN based model which is specifically tasked for gaze following utilizing head position and orientation along with saliency to accomplish the task.
 
  This method has several advantages, such as it is robust in case of single actor being present in a scene, does not suffer from any evident bias of looking at people only (such as in \cite{fathi2012social}) and the network architecture does not require extensive hand-crafted functions (such as those required in probabilistic models such as MRF or CRF). Even though, these merits are far reaching the model uses a naive approach in cases where multiple actors are present in the scene, it resorts to providing predictions for each actor individually.
@@ -75,14 +87,12 @@ Following sections discuss the CNN and MRF models in detail.
 
 \subsection{CNN Model}
 
-The CNN model consists of two pathways, namely Gaze pathway and Saliency pathway. As noted in \cite{nips15_recasens}, the gaze pathway tends to learn predicting the direction of gaze based on the head orientation (this is the reason why we use the CNN prediction and head position to generate orientation vectors for the MRF model) and the saliency pathway tends to learn to find salient regions in the scene. The model is implemented in Caffe [] and the two pathways are equivalent to the first five layers of AlexNet \cite{krizhevsky2012imagenet}. The saliency pathway is initialized with weights from Places-CNN \cite{zhou2014learning} and gaze pathway is initialized with ImageNet-CNN \cite{russakovsky2015imagenet}.
+The CNN model consists of two pathways, namely Gaze pathway and Saliency pathway. As noted in \cite{nips15_recasens}, the gaze pathway tends to learn predicting the direction of gaze based on the head orientation (this is the reason why we use the CNN prediction and head position to generate orientation vectors for the MRF model) and the saliency pathway tends to learn to find salient regions in the scene. The model is implemented in Caffe \cite{jia2014caffe} and the two pathways are equivalent to the first five layers of AlexNet \cite{krizhevsky2012imagenet}. The saliency pathway is initialized with weights from Places-CNN \cite{zhou2014learning} and gaze pathway is initialized with ImageNet-CNN \cite{russakovsky2015imagenet}.
 The saliency and gaze masks obtained are then combined through an elementwise layer and final prediction is made through shifted grids. More details can be found in \cite{nips15_recasens}.
 
 \subsection{MRF Model}
 
 \textbf{Markov random fields} are a form of probabilistic graph models that have been heavily used throughout the computer vision field to solve classification problems \cite{wang2013markov}, \cite{quattoni2007hidden}. Markov random fields have proved to be effective in certain applications like image segmentation and parsing text (NLP).
-
-\pagebreak
 
 The goal of using an MRF is find a labeling $\{p_1 = l_1,\ p_2 = l_2,\ \dots,\ p_n = l_n\}$ such that the joint probability $P(p_1 = l_1,\ p_2 = l_2,\ \dots,\ p_n = l_n)$ is maximized.
 
@@ -95,7 +105,7 @@ The goal of using an MRF is find a labeling $\{p_1 = l_1,\ p_2 = l_2,\ \dots,\ p
   \vspace{-0.5cm}
 \end{figure}
 
-
+\vspace{3ex}
 We use the graphical model from \cite{fathi2012social} to refine the gaze predictions from \cite{nips15_recasens}. The MRF model is used to utilize the relationship between the multiple actors in a scene. The motivation for this approach stems for example from scenes where multiple actors are looking at the same location. In case of individual predictions there is no way for benefitting from the information we have about the gaze of other actors in the scene, whereas joint prediction allows us to give higher weights to locations which lie in the direction of gaze of an actor and are also looked at by other actors in the scene.
 
 The MRF model implementation uses the following unary and pairwise potentials. The unary potentials allows the model to predict the direction of the gaze based on head position and orientation vectors and on the other hand the pairwise potentials capture the interaction between actors in the scene. \\
@@ -172,7 +182,6 @@ We use two error metrics to quantify the performance of our method and to conduc
 \subsection{Baselines}
 
 We evaluate the performance of the following models on the GazeFollow \cite{nips15_recasens} dataset. The goal of these experiments is to infer the learning carried out by the MRF model. This is achieved by varying the input applied to the MRF.
-
 \begin{enumerate}[wide, labelwidth=!, labelindent=0pt, itemsep=0em]
   \item \textbf{Random} Random labels are assigned for each subject gaze point.
   \item \textbf{MRF-Chance} The input to the MRF model is set to random instead of using the CNN predictions. This allows us to gauge how useful the CNN predictions are.
@@ -186,18 +195,8 @@ We evaluate the performance of the following models on the GazeFollow \cite{nips
 
 \begin{figure}[H]
   \begin{center}
-    \begin{tabular}{|l|r|r|}
-      \hline
-      Method & L2 Distance & Angular Error \\
-      \hline
-      Random & 0.452 & 67.12 \\
-      MRF-Chance & 0.310 & 32.62 \\
-      MRF-Unary & 0.278 & 28.43 \\
-      CNN & 0.199 & 26.50 \\
-      Ours & 0.266 & 26.82 \\
-      Ours-Oracle & 0.210 & 15.58 \\
-      \hline
-    \end{tabular}
+    \includegraphics[width=0.80\linewidth]{images/graph1.png} \\
+    \includegraphics[width=0.80\linewidth]{images/graph2.png}
   \end{center}
   \vspace{-0.3cm}
    \caption{Quantitative comparisons between the gaze prediction models.}
@@ -213,11 +212,12 @@ Furthermore, we compare the effect of head position and orientation accuracy on 
 
 \begin{figure}[H]
   \begin{center}
-    \includegraphics[width=0.75\linewidth]{images/head_table.png}
+    \includegraphics[width=0.70\linewidth]{images/graph3.png} \\
+    \includegraphics[width=0.70\linewidth]{images/graph4.png}
   \end{center}
   \vspace{-0.3cm}
    \caption{CNN performance given different head information \cite{nips15_recasens}.}
-  \vspace{-0.5cm}
+  \vspace{-1.5cm}
 \end{figure}
 
 \vspace{3ex}
@@ -225,20 +225,13 @@ Looking at the above mentioned performance results, specifically CNN versus our 
 
 \begin{figure}[H]
   \begin{center}
-    \begin{tabular}{|l|r|r|r|r|}
-      \hline
-      Method & L2 A & Ang. A & L2 B & Ang. B \\
-      \hline
-      Bad CNN & 0.38 & 41.29 & 0.23 & 21.28 \\
-      Good CNN & 0.18 & 11.09 & 0.21 & 13.71 \\
-      \hline
-    \end{tabular}
+    \includegraphics[width=0.70\linewidth]{images/graph5.png} \\
+    \includegraphics[width=0.70\linewidth]{images/graph6.png}
   \end{center}
   \vspace{-0.3cm}
    \caption{Results on various thresholded subsets of the data. A corresponds to the CNN results and B corresponds to our method.}
   \vspace{-0.5cm}
 \end{figure}
-
 \vspace{3ex}
 The performance results on these subsets lead to the following observations. For the set with bad CNN predictions the MRF is clearly able to refine the gaze point predictions based on joint distributions.  In the case of good CNN predictions the MRF model still tries to correct these even though the results from CNN model are fairly accurate with respect to the ground truth.
 
